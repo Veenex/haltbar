@@ -1,8 +1,8 @@
 /* Haltbar – Service Worker: speichert die App auf dem Handy, damit sie auch offline startet.
  * Bei jeder Änderung an App-Dateien: VERSION hier und ?v= in index.html erhöhen.
  */
-const VERSION = 'haltbar-v2';
-const ASSET_V = '2';
+const VERSION = 'haltbar-v3';
+const ASSET_V = '3';
 
 importScripts('foods.js?v=' + ASSET_V);
 
@@ -14,10 +14,11 @@ const SHELL = [
   'recipes.js?v=' + ASSET_V,
   'app.js?v=' + ASSET_V,
   'manifest.webmanifest',
-  'icons/icon-192.png',
-  'icons/icon-512.png',
-  'icons/apple-touch-icon.png',
-  'icons/favicon.png',
+  'icons/icon-192.png?v=' + ASSET_V,
+  'icons/icon-512.png?v=' + ASSET_V,
+  'icons/maskable-512.png?v=' + ASSET_V,
+  'icons/apple-touch-icon.png?v=' + ASSET_V,
+  'icons/favicon.png?v=' + ASSET_V,
   'img/empty.webp',
   'img/install.webp',
 ];

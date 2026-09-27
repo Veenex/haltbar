@@ -76,21 +76,24 @@ def ui_images():
         print(f'  {rel}')
 
 
-def gradient(size):
-    """Frisches Grün, diagonal von hell nach dunkel."""
-    top, bottom = (74, 214, 138), (18, 150, 82)
-    img = Image.new('RGB', (size, size))
-    px = img.load()
-    for y in range(size):
-        for x in range(size):
-            t = (x + y) / (2 * (size - 1))
-            px[x, y] = tuple(round(a + (b - a) * t) for a, b in zip(top, bottom))
-    return img
+def background(size):
+    """Dunkles Anthrazit, diagonal von oben links nach unten rechts dunkler,
+    dazu ein weicher Lichtschein hinter dem Apfel. Undurchsichtig, denn iOS
+    macht transparente Stellen von Startbildschirm-Symbolen einfach schwarz."""
+    import numpy as np
+    top, bottom, glow = (60, 66, 63), (18, 21, 20), (92, 100, 96)
+    yy, xx = np.mgrid[0:size, 0:size].astype(np.float32) / (size - 1)
+    t = ((xx + yy) / 2)[..., None]
+    rgb = np.array(top, np.float32) * (1 - t) + np.array(bottom, np.float32) * t
+    d = np.sqrt((xx - 0.42) ** 2 + (yy - 0.40) ** 2) / 0.75
+    a = (np.clip(1 - d, 0, 1) ** 2 * 0.55)[..., None]
+    rgb = rgb * (1 - a) + np.array(glow, np.float32) * a
+    return Image.fromarray(rgb.astype(np.uint8), 'RGB')
 
 
 def logo(size, content_scale):
-    """Apfel + Wecker auf grünem Grund. content_scale = Anteil der Fläche für das Motiv."""
-    base = gradient(size).convert('RGBA')
+    """Apfel + Wecker auf dunklem Grund. content_scale = Anteil der Fläche für das Motiv."""
+    base = background(size).convert('RGBA')
     box = size * content_scale
     apple = fluent('Red apple').resize((round(box * 0.86),) * 2, Image.LANCZOS)
     clock = fluent('Alarm clock').resize((round(box * 0.46),) * 2, Image.LANCZOS)
