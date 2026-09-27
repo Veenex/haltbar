@@ -18,7 +18,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/png" href="icons/favicon.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="styles.css?v=1">
+  <link rel="stylesheet" href="styles.css?v=2">
 </head>
 <body>
   <div class="app">
@@ -34,6 +34,15 @@
       </div>
       <div class="status" id="status" hidden></div>
     </header>
+
+    <button type="button" class="teaser" id="recipes-teaser" hidden>
+      <img src="food/suppe.webp" alt="" width="44" height="44">
+      <span class="teaser-text">
+        <strong>Was koche ich heute?</strong>
+        <span id="teaser-sub"></span>
+      </span>
+      <svg class="chev" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+    </button>
 
     <section class="install" id="install" hidden>
       <button type="button" class="install-main" id="btn-install">
@@ -106,6 +115,7 @@
 
         <p class="form-error" id="f-error" role="alert" hidden></p>
         <button type="submit" class="primary">Speichern</button>
+        <button type="button" class="soft-btn wide-btn" id="btn-item-recipes" hidden></button>
         <button type="button" class="danger" id="btn-delete" hidden>Aus der Liste entfernen</button>
       </div>
     </form>
@@ -124,6 +134,20 @@
         <input class="input" id="pick-search" type="search" autocomplete="off" enterkeyhint="search" placeholder="Suchen, z. B. Käse" aria-label="Bild suchen">
       </div>
       <div class="sheet-body" id="pick-body"></div>
+    </div>
+  </div>
+
+  <!-- Rezeptideen -->
+  <div class="sheet-wrap" id="sheet-recipes" hidden>
+    <div class="backdrop" data-close></div>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="rec-title">
+      <header class="sheet-head">
+        <span></span>
+        <h2 id="rec-title">Rezeptideen</h2>
+        <button type="button" class="link-btn strong" data-close>Fertig</button>
+      </header>
+      <div class="chips rec-filter" id="rec-filter" aria-label="Nach Lebensmittel filtern"></div>
+      <div class="sheet-body" id="rec-body"></div>
     </div>
   </div>
 
@@ -160,16 +184,18 @@
           <ul class="howto">
             <li>Das Bild sucht Haltbar automatisch passend zum Namen aus. Tippe im Formular auf das Bild, um ein anderes zu wählen – die App merkt sich deine Wahl.</li>
             <li>Tippe auf einen Eintrag, um ihn zu ändern.</li>
+            <li>„Was koche ich heute?“ schlägt Rezepte mit deinen Lebensmitteln vor – zuerst die, die bald ablaufen. Abgelaufenes wird nicht vorgeschlagen.</li>
             <li>Wisch einen Eintrag nach links, wenn er aufgebraucht oder weggeworfen ist. Aus Versehen? Einfach „Rückgängig“ tippen.</li>
           </ul>
         </section>
 
-        <p class="credits">Lebensmittel-Bilder: „Fluent Emoji“ von Microsoft (MIT-Lizenz)<br>Version 1</p>
+        <p class="credits">Lebensmittel-Bilder: „Fluent Emoji“ von Microsoft (MIT-Lizenz), Aufschnitt selbst gezeichnet<br>Rezepte: eigene Sammlung, mehr Ideen über chefkoch.de<br>Version 2</p>
       </div>
     </div>
   </div>
 
-  <script src="foods.js?v=1"></script>
-  <script src="app.js?v=1"></script>
+  <script src="foods.js?v=2"></script>
+  <script src="recipes.js?v=2"></script>
+  <script src="app.js?v=2"></script>
 </body>
 </html>

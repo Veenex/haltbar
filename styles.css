@@ -123,6 +123,24 @@ h1 { margin: 6px 0 2px; font-size: 32px; line-height: 1.1; font-weight: 800; let
 .status.soon { background: var(--orange-soft); color: var(--orange-text); }
 .status.ok { background: var(--green-soft); color: var(--green-text); }
 
+/* ---------- Rezept-Karte auf der Startseite ---------- */
+
+.teaser {
+  width: 100%;
+  display: flex; align-items: center; gap: 12px;
+  margin-top: 14px; padding: 12px 10px 12px 12px;
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--shadow);
+  text-align: left;
+}
+.teaser:active { background: var(--tile); }
+.teaser img { flex: none; width: 44px; height: 44px; }
+.teaser-text { flex: 1; min-width: 0; }
+.teaser-text strong { display: block; font-size: 15.5px; }
+.teaser-text span { display: block; font-size: 13.5px; color: var(--muted); line-height: 1.3; }
+.chev { flex: none; color: var(--muted); transition: transform .2s; }
+
 /* ---------- Installieren-Hinweis ---------- */
 
 .install {
@@ -465,6 +483,91 @@ h1 { margin: 6px 0 2px; font-size: 32px; line-height: 1.1; font-weight: 800; let
 .tile.on { background: var(--accent-soft); box-shadow: inset 0 0 0 2.5px var(--accent); }
 .tile.auto span { font-weight: 700; color: var(--accent-text); }
 .no-hits { margin: 32px 12px; text-align: center; color: var(--muted); }
+
+/* ---------- Rezeptideen ---------- */
+
+.rec-filter { flex: none; margin: 2px 0 0; padding: 2px 16px 10px; }
+.chip.on { background: var(--accent); color: #fff; }
+.chip-days {
+  margin-left: 2px; padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 12px; font-weight: 750;
+  background: var(--green-soft); color: var(--green-text);
+}
+.chip-days.urgent { background: var(--orange); color: #fff; }
+.chip-days.soon { background: var(--orange-soft); color: var(--orange-text); }
+.chip.on .chip-days { background: rgba(255, 255, 255, .25); color: #fff; }
+
+.rec-intro { margin: 2px 4px 12px; color: var(--muted); font-size: 14px; line-height: 1.4; }
+.rec-empty { margin: 28px 12px 0; text-align: center; color: var(--muted); font-size: 15px; }
+
+.rcard {
+  padding: 2px 12px 12px;
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+.rcard + .rcard { margin-top: 10px; }
+.rhead { width: 100%; display: flex; align-items: center; gap: 12px; padding: 8px 0; text-align: left; }
+.rinfo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.rtitle { font-size: 16.5px; font-weight: 700; line-height: 1.25; }
+.rmeta { font-size: 13px; color: var(--muted); }
+.rcard.open .chev { transform: rotate(90deg); }
+
+.rtags { display: flex; flex-wrap: wrap; gap: 6px; }
+.rtag {
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 13px; font-weight: 650;
+  background: var(--green-soft); color: var(--green-text);
+}
+.rtag.urgent { background: var(--orange); color: #fff; }
+.rtag.soon { background: var(--orange-soft); color: var(--orange-text); }
+.rtag.week { background: var(--amber-soft); color: var(--amber-text); }
+.rneed { margin: 8px 2px 0; color: var(--muted); font-size: 13.5px; line-height: 1.35; }
+.rneed.ok { display: flex; align-items: center; gap: 4px; color: var(--green-text); font-weight: 650; }
+
+.rdetail { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+.rdetail h4 {
+  margin: 6px 0 8px;
+  font-size: 13px; font-weight: 750; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--muted);
+}
+.ring { list-style: none; margin: 0 0 12px; padding: 0; }
+.ring li { display: flex; align-items: flex-start; gap: 8px; padding: 3px 0; font-size: 15px; line-height: 1.35; }
+.ring li svg { flex: none; margin-top: 1px; color: var(--accent); }
+.ring li.have { font-weight: 650; }
+.ring li.basic { color: var(--muted); }
+.ring em { font-style: normal; font-weight: 500; color: var(--muted); }
+.ring .bullet { flex: none; width: 18px; height: 20px; display: grid; place-items: center; }
+.ring .bullet::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--muted); opacity: .45; }
+.rsteps { margin: 0; padding-left: 22px; font-size: 15px; line-height: 1.45; }
+.rsteps li + li { margin-top: 8px; }
+.rsteps li::marker { color: var(--accent-text); font-weight: 750; }
+
+.rlink {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 14px; padding: 6px 0;
+  color: var(--accent-text); font-size: 15px; font-weight: 700; text-decoration: none;
+}
+.rec-more {
+  position: relative;
+  display: flex; flex-direction: column; gap: 2px;
+  margin-top: 18px; padding: 14px 44px 14px 16px;
+  border-radius: var(--radius);
+  background: var(--accent-soft); color: var(--accent-text);
+  text-decoration: none;
+}
+.rec-more span { font-size: 13px; font-weight: 650; opacity: .85; }
+.rec-more strong { font-size: 15.5px; line-height: 1.3; }
+.rec-more svg { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); }
+.rec-note {
+  margin: 16px 0 0; padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--amber-soft); color: var(--amber-text);
+  font-size: 13.5px; line-height: 1.4;
+}
+.wide-btn { width: 100%; margin-top: 12px; min-height: 50px; }
 
 /* ---------- Hilfe ---------- */
 

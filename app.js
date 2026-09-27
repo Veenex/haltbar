@@ -188,6 +188,9 @@
     alert: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5M12 17.4v.1"/></svg>',
     clock: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
     ok: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.3l2.7 2.7L16 9.6"/></svg>',
+    tick: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+    chev: '<svg class="chev" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>',
+    ext: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5M19 5l-8 8M10 5H6a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4"/></svg>',
   };
 
   // ---------- Liste ----------
@@ -232,6 +235,7 @@
     $('list').innerHTML = html;
     $('empty').hidden = rows.length > 0;
     renderStatus(rows);
+    renderTeaser();
     renderInstall();
   }
 
@@ -437,6 +441,11 @@
     renderDate();
     if (editing) $('f-chips').hidden = true;   // Vorschläge erst, wenn der Name geändert wird
     else renderChips();
+    // Beim Bearbeiten: passende Rezepte für genau dieses Lebensmittel anbieten
+    const recBtn = $('btn-item-recipes');
+    const count = editing && daysLeft(date) >= 0 ? Recipes.suggest(fridgeRows(), editing).length : 0;
+    recBtn.hidden = !count;
+    if (count) recBtn.textContent = plural(count, 'Rezeptidee', 'Rezeptideen') + ' mit „' + name + '“';
     form.querySelector('.sheet-body').scrollTop = 0;
   }
 
@@ -667,6 +676,142 @@
     }
     updateFormIcon(true);
     closeSheet();
+  });
+
+  // ---------- Rezeptideen ----------
+
+  let recFocus = null;          // nur Rezepte mit diesem Lebensmittel (id)
+  let recShown = [];
+  const recOpen = new Set();    // aufgeklappte Rezepte
+
+  // Was im Kühlschrank ist und noch nicht abgelaufen
+  function fridgeRows() {
+    return state.items
+      .map((it) => ({ id: it.id, name: it.name, n: Foods.norm(it.name), key: iconFor(it), d: daysLeft(it.date) }))
+      .filter((x) => x.d >= 0);
+  }
+
+  const dayShort = (d) => (d === 0 ? 'heute' : d === 1 ? 'morgen' : 'noch ' + d + ' T.');
+
+  function renderTeaser() {
+    const res = Recipes.suggest(fridgeRows());
+    $('recipes-teaser').hidden = !res.length;
+    if (res.length) {
+      $('teaser-sub').textContent = 'z. B. ' + res[0].r.title + ' · ' + plural(res.length, 'Idee', 'Ideen') + ' mit deinen Sachen';
+    }
+  }
+
+  function openRecipes(focusId) {
+    recFocus = focusId || null;
+    recOpen.clear();
+    renderRecipes();
+    openSheet('sheet-recipes');
+    $('rec-body').scrollTop = 0;
+    const on = $('rec-filter').querySelector('.on');
+    if (on && on.dataset.id) on.scrollIntoView({ inline: 'center', block: 'nearest' });
+  }
+
+  function renderRecipes() {
+    const fridge = fridgeRows();
+    const all = Recipes.suggest(fridge);
+    const used = new Set();
+    all.forEach((x) => x.have.forEach((h) => used.add(h.item.id)));
+    if (recFocus && !fridge.some((it) => it.id === recFocus)) recFocus = null;
+    if (recFocus) used.add(recFocus);
+    const choices = fridge.filter((it) => used.has(it.id)).sort((a, b) => a.d - b.d || a.name.localeCompare(b.name, 'de'));
+    const focusItem = recFocus && fridge.find((it) => it.id === recFocus);
+
+    // Filter: Alle + jedes verwendbare Lebensmittel, Dringendes zuerst
+    const chip = (id, label, it) => '<button type="button" class="chip' + ((id || null) === recFocus ? ' on' : '') + '" data-id="' + esc(id) + '">' +
+      (it ? '<img src="' + Foods.src(it.key) + '" alt="">' : '') + esc(label) +
+      (it && it.d <= 3 ? '<span class="chip-days ' + level(it.d) + '">' + dayShort(it.d) + '</span>' : '') + '</button>';
+    $('rec-filter').innerHTML = choices.length ? chip('', 'Alle', null) + choices.map((it) => chip(it.id, it.name, it)).join('') : '';
+    $('rec-filter').hidden = !choices.length;
+
+    recShown = (focusItem ? Recipes.suggest(fridge, recFocus) : all).slice(0, 40);
+    let html = '';
+    if (!fridge.length) {
+      html = '<p class="rec-empty">Trag zuerst ein paar Lebensmittel ein – dann schlage ich passende Rezepte vor.</p>';
+    } else if (!recShown.length) {
+      html = '<p class="rec-empty">Für deine Lebensmittel habe ich noch kein passendes Rezept. Im Internet findest du bestimmt etwas:</p>';
+    } else {
+      html = '<p class="rec-intro">' + (focusItem
+        ? 'Rezepte mit „' + esc(focusItem.name) + '“ – tippe auf ein Rezept für Zutaten und Zubereitung.'
+        : 'Zuerst die Rezepte, die verbrauchen, was bald abläuft. Tippe auf ein Rezept für Zutaten und Zubereitung.') + '</p>';
+      html += recShown.map(recipeCard).join('');
+    }
+    const query = focusItem ? focusItem.name : choices.length ? choices[0].name : '';
+    if (query) {
+      html += '<a class="rec-more" href="' + esc(Recipes.chefkoch(query)) + '" target="_blank" rel="noopener">' +
+        '<span>Mehr Ideen im Internet</span><strong>„' + esc(query) + '“ bei Chefkoch suchen</strong>' + SVG.ext + '</a>';
+    }
+    if (state.items.some((it) => daysLeft(it.date) < 0)) {
+      html += '<p class="rec-note">Abgelaufenes ist hier nicht dabei. Vieles mit Mindesthaltbarkeitsdatum wie Joghurt oder Käse ist oft noch gut – prüf es mit Augen, Nase und Zunge. Fleisch und Fisch mit „zu verbrauchen bis“ nach dem Datum nicht mehr essen.</p>';
+    }
+    $('rec-body').innerHTML = html;
+  }
+
+  function recipeCard(x) {
+    const r = x.r;
+    const open = recOpen.has(r.id);
+    const tags = x.have.filter((h) => h.g.flag !== 'g').map((h) =>
+      '<span class="rtag ' + level(h.item.d) + '">' + esc(h.item.name) + (h.item.d <= 3 ? ' · ' + dayShort(h.item.d) : '') + '</span>').join('');
+    const need = x.missing.length
+      ? '<p class="rneed">Dazu brauchst du: ' + esc(x.missing.map((g) => g.name).join(', ')) + '</p>'
+      : '<p class="rneed ok">' + SVG.tick + 'Alles Wichtige ist da</p>';
+    return '<article class="rcard' + (open ? ' open' : '') + '" data-rid="' + r.id + '">' +
+      '<button type="button" class="rhead" aria-expanded="' + open + '">' +
+        '<span class="thumb"><img src="' + Foods.src(r.icon) + '" alt="" width="40" height="40" loading="lazy" decoding="async"></span>' +
+        '<span class="rinfo"><span class="rtitle">' + esc(r.title) + '</span><span class="rmeta">' + r.min + ' Min. · für 2 Personen</span></span>' +
+        SVG.chev +
+      '</button>' +
+      '<div class="rtags">' + tags + '</div>' + need +
+      (open ? recipeDetail(x) : '') +
+      '</article>';
+  }
+
+  function recipeDetail(x) {
+    const owned = new Map(x.have.map((h) => [h.g, h.item]));
+    const ing = x.r.ing.map((g) => {
+      const it = owned.get(g);
+      // Zeigen, womit die Zutat erfüllt ist, wenn der Name anders lautet („Parmesan“ → „Gouda“)
+      const via = it && Foods.norm(g.full).indexOf(it.n) < 0 ? ' <em>· ' + esc(it.name) + '</em>' : '';
+      const opt = g.flag === 'o' ? ' <em>(optional)</em>' : '';
+      return '<li class="' + (it ? 'have' : g.flag === 'g' ? 'basic' : '') + '">' +
+        (it ? SVG.tick : '<span class="bullet"></span>') + '<span>' + esc(g.full) + opt + via + '</span></li>';
+    }).join('');
+    const steps = x.r.steps.map((s) => '<li>' + esc(s) + '</li>').join('');
+    return '<div class="rdetail">' +
+      '<h4>Zutaten</h4><ul class="ring">' + ing + '</ul>' +
+      '<h4>So geht\'s</h4><ol class="rsteps">' + steps + '</ol>' +
+      '<a class="rlink" href="' + esc(Recipes.chefkoch(x.r.title)) + '" target="_blank" rel="noopener">Mehr Varianten bei Chefkoch' + SVG.ext + '</a>' +
+      '</div>';
+  }
+
+  $('recipes-teaser').addEventListener('click', () => openRecipes(null));
+  $('btn-item-recipes').addEventListener('click', () => openRecipes(editing));
+
+  $('rec-filter').addEventListener('click', (e) => {
+    const c = e.target.closest('.chip');
+    if (!c) return;
+    recFocus = c.dataset.id || null;
+    recOpen.clear();
+    const scroll = $('rec-filter').scrollLeft;
+    renderRecipes();
+    $('rec-filter').scrollLeft = scroll;   // Leiste nicht an den Anfang springen lassen
+    $('rec-body').scrollTop = 0;
+  });
+
+  $('rec-body').addEventListener('click', (e) => {
+    const head = e.target.closest('.rhead');
+    if (!head) return;
+    const card = head.parentElement;
+    const id = +card.dataset.rid;
+    const x = recShown.find((v) => v.r.id === id);
+    if (!x) return;
+    if (recOpen.has(id)) recOpen.delete(id);
+    else recOpen.add(id);
+    card.outerHTML = recipeCard(x);
   });
 
   // ---------- Meldungen ----------

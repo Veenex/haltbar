@@ -40,23 +40,34 @@ def save_webp(img, path, size):
     img.save(path, 'WEBP', quality=82, method=6)
 
 
-def food_icons():
+def food_icons(only=None):
+    """Alle Bilder aus foods.js bauen – oder nur die Schlüssel in `only`."""
     src = (ROOT / 'foods.js').read_text(encoding='utf-8')
-    entries = re.findall(r"\[\s*'([a-z_]+)'\s*,\s*'([A-Z][^']+)'\s*,\s*'", src)
+    # [Schlüssel, Ordner, Anzeigename, Kategorie, Stufe, …]
+    entries = re.findall(r"\[\s*'([a-z_]+)'\s*,\s*'([^']+)'\s*,\s*'[^']*'\s*,\s*'[a-z]+'\s*,\s*\d", src)
     if not entries:
         sys.exit('Keine Einträge in foods.js gefunden')
     out = ROOT / 'food'
-    keys = set()
+    keys = {key for key, _ in entries}
+    done = 0
     for key, folder in entries:
-        keys.add(key)
-        save_webp(fluent(folder), out / f'{key}.webp', FOOD_SIZE)
+        if only and key not in only:
+            continue
+        if folder == 'eigen':      # selbst gezeichnet, siehe custom_icons.py
+            from custom_icons import DRAW
+            img = DRAW[key]()
+        else:
+            img = fluent(folder)
+        save_webp(img, out / f'{key}.webp', FOOD_SIZE)
+        done += 1
         print(f'  {key:16} <- {folder}')
-    # Übrig gebliebene Bilder von gelöschten Einträgen entfernen
-    for f in out.glob('*.webp'):
-        if f.stem not in keys:
-            f.unlink()
-            print(f'  entfernt: {f.name}')
-    print(f'{len(entries)} Lebensmittel-Bilder')
+    if not only:
+        # Übrig gebliebene Bilder von gelöschten Einträgen entfernen
+        for f in out.glob('*.webp'):
+            if f.stem not in keys:
+                f.unlink()
+                print(f'  entfernt: {f.name}')
+    print(f'{done} Lebensmittel-Bilder')
 
 
 def ui_images():
@@ -112,10 +123,13 @@ def app_icons():
 
 
 if __name__ == '__main__':
-    what = set(sys.argv[1:]) or {'food', 'ui', 'app'}
-    if 'food' in what:
-        food_icons()
-    if 'ui' in what:
+    # Aufruf: build_icons.py [food|ui|app] … – bei „food“ optional einzelne Schlüssel, z. B. „food aufschnitt“
+    args = sys.argv[1:]
+    parts = {a for a in args if a in ('food', 'ui', 'app')} or {'food', 'ui', 'app'}
+    only = {a for a in args if a not in ('food', 'ui', 'app')}
+    if 'food' in parts:
+        food_icons(only)
+    if 'ui' in parts:
         ui_images()
-    if 'app' in what:
+    if 'app' in parts:
         app_icons()

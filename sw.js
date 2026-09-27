@@ -1,8 +1,8 @@
 /* Haltbar – Service Worker: speichert die App auf dem Handy, damit sie auch offline startet.
  * Bei jeder Änderung an App-Dateien: VERSION hier und ?v= in index.html erhöhen.
  */
-const VERSION = 'haltbar-v1';
-const ASSET_V = '1';
+const VERSION = 'haltbar-v2';
+const ASSET_V = '2';
 
 importScripts('foods.js?v=' + ASSET_V);
 
@@ -11,6 +11,7 @@ const SHELL = [
   'index.html',
   'styles.css?v=' + ASSET_V,
   'foods.js?v=' + ASSET_V,
+  'recipes.js?v=' + ASSET_V,
   'app.js?v=' + ASSET_V,
   'manifest.webmanifest',
   'icons/icon-192.png',
